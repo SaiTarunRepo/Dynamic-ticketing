@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="4" y="16" width="56" height="32" rx="4" fill="#e94560"/>
+  <circle cx="4" cy="28" r="5" fill="#f0f2f5"/>
+  <circle cx="60" cy="28" r="5" fill="#f0f2f5"/>
+  <circle cx="4" cy="38" r="5" fill="#f0f2f5"/>
+  <circle cx="60" cy="38" r="5" fill="#f0f2f5"/>
+  <line x1="20" y1="16" x2="20" y2="48" stroke="#f0f2f5" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="40" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="bold" fill="#fff">MOVIE</text>
+  <text x="40" y="42" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="#fff">TICKET</text>
+  <text x="12" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#fff">🎬</text>
+</svg>
