@@ -16,13 +16,12 @@ public class TicketingService {
     private final AtomicInteger totalSeatsSold = new AtomicInteger(0);
     public List<Seat> initializeEvent() {
         log.info("Initializing event with 100 seats");
-        synchronized (seats) {
-            seats.clear();
-            for (int i = 1; i <= 100; i++) {
-                seats.add(new Seat(i));
-            }
-            totalSeatsSold.set(0);
+
+        seats.clear();
+        for (int i = 1; i <= 100; i++) {
+            seats.add(new Seat(i));
         }
+        totalSeatsSold.set(0);
         log.info("Event initialized. Total seats: {}, seats sold reset to 0", seats.size());
         return getAllSeats();
     }
@@ -45,22 +44,40 @@ public class TicketingService {
             log.warn("Booking rejected - no seats provided");
             return BookingResponse.error("No seats provided");
         }
-        synchronized (seats) {
-            if (seats.isEmpty()) {
-                log.warn("Booking rejected - event not initialized");
-                return BookingResponse.error("Event has not been initialized. Call POST /initialize first.");
+        
+        // Validate event is initialized and seat IDs are valid
+        if (seats.isEmpty()) {
+            log.warn("Booking rejected - event not initialized");
+            return BookingResponse.error("Event has not been initialized. Call POST /initialize first.");
+        }
+        
+        for (int seatId : seatIds) {
+            if (seatId < 1 || seatId > 100) {
+                log.warn("Booking rejected - invalid seat ID: {}", seatId);
+                return BookingResponse.error("Invalid seat ID: " + seatId);
             }
+        }
+        
+        // Check if seats are available (individual operations are synchronized by synchronizedList)
+        for (int seatId : seatIds) {
+            Seat seat = seats.get(seatId - 1);
+            if ("booked".equals(seat.getStatus())) {
+                log.warn("Booking rejected - seat {} is already booked", seatId);
+                return BookingResponse.error("Seat " + seatId + " is already booked");
+            }
+        }
+        
+        // Book all seats atomically - use synchronized block here because we need multiple operations as one unit
+        synchronized (seats) {
+            // Double-check after acquiring lock (check-then-act pattern)
             for (int seatId : seatIds) {
-                if (seatId < 1 || seatId > 100) {
-                    log.warn("Booking rejected - invalid seat ID: {}", seatId);
-                    return BookingResponse.error("Invalid seat ID: " + seatId);
-                }
                 Seat seat = seats.get(seatId - 1);
                 if ("booked".equals(seat.getStatus())) {
-                    log.warn("Booking rejected - seat {} is already booked", seatId);
+                    log.warn("Booking rejected - seat {} was booked by another user", seatId);
                     return BookingResponse.error("Seat " + seatId + " is already booked");
                 }
             }
+            
             List<TicketDetail> ticketDetails = new ArrayList<>();
             double totalPrice = 0;
             for (int seatId : seatIds) {
